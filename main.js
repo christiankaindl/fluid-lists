@@ -3,12 +3,62 @@
   This is still in an early stage and not yet usable for production.
 */
 
-document.addEventListener("wheel", myFunc);
+
+//IDEA: calcEase() <-- Respects items speed and returns amount of travel (calculates an ease curve to its target position)?
+
+var fluid = function () {
+  this.parent = document.getElementById("myList");
+  document.addEventListener("wheel", function updateAccStack(e) {
+    this.accelerationStack += e.deltaY;
+
+    if (!isRunning) {
+      this.isRunning = true;
+      this.move();
+    }
+  }.bind(this));
+
+  this.DOMItems = this.parent.getElementsByTagName("li");
+  this.items = [];
+  this.accelerationStack = 0;
+  this.velocity = 0;
+  this.activeItems = 0;
+  this.isRunning = false;
+
+  this.move = function () {
+    function runner() {
+      
+    }
+  }
+
+  this.bored = function () {
+    this.activeItems--;
+
+    if (this.activeItems == 0) {
+      this.isRunning = false;
+    }
+  }
+
+  for (let i=0; i<list.length; i++) {
+    //this.items[i].DOMItem = this.DOMItems[i];
+    //testMovements[i].position = list[i].offsetTop;
+    //testMovements[i].target = list[i].offsetTop;
+    //testMovements[i].newPosition = function () {
+
+    //}
+  }
+}
+
+
+
+
 
 var listParent = document.getElementById("myList");
 var list = listParent.getElementsByTagName('li');
 var velocity = 0; //Should be used?
 var testMovements = [];
+var isRunning = false;
+
+var idleElems = list.length;
 
 // NOTE: Make scroller Object that includes testMovements[] and list and listParent, general velocity, ...
 
@@ -18,27 +68,93 @@ for (let i=0; i<list.length; i++) {
   testMovements[i].position = list[i].offsetTop;
   testMovements[i].target = list[i].offsetTop;
   testMovements[i].first = true;
+  testMovements[i].idleElems = [];
+  testMovements[i].bored = function () {
+    console.log("THIS: ", this);
+    idleElems++;
+
+    if (idleElems >= list.length) {
+      isRunning = false;
+    }
+  }
+  testMovements[i].newPosition = function () {
+
+  }
 }
 
 function myFunc(e) {
+
+if (!isRunning) {
+  var completeStatus = 0;
   move();
+}
+
+
+
+
+
+  function betterRunner() {
+
+    if (isRunning === false) {
+      console.log("Returned at isRunning");
+      return;
+    }
+    /*for (let i=0; i<list.length; i++) {
+      let currentElement = testMovements[i];
+
+      if (currentElement.position == currentElement.target && currentElement.velocity == 0) {
+        completeStatus++;
+        console.log(completeStatus);
+        if (completeStatus == 10) {
+          isRunning = false;
+          return;
+        }
+      }
+      currentElement.target += (2 * e.deltaY);
+
+      currentElement.position = currentElement.update();
+
+    //  if (!currentElement.isRunning) runner(currentElement, 100);
+
+  }*/
+
+    for (let i=0; i<list.length; i++) {
+      var pos = currentElement.newPosition();
+
+      if (currentElement.position == currentElement.target && currentElement.velocity == 0) {
+        currentElement.bored();
+      }
+      let currentElement = testMovements[i];
+      currentElement.element.style.transform = `translateY(${currentElement.newPosition()}px)`;
+
+    }
+
+    requestAnimationFrame(betterRunner);
+
+
+
+
+  }
 
   async function move() {
 
+    betterRunner();
+
+/*
     for (let i=0; i<list.length; i++) {
       let currentElement = testMovements[i];
       currentElement.target += (2 * e.deltaY);
 
-      if (!currentElement.isRunning) runner(currentElement, 5*i);
+      if (!currentElement.isRunning) runner(currentElement, 100);
 
     }
 
     async function runner (elem, temporary) {
       console.log(elem.first);
-      if(elem.first) {
+      //if(elem.first) {
         await resolveAfterDelay(temporary);
-        elem.first = false;
-      }
+        //elem.first = false;
+      //}
       elem.isRunning = true;
       if (elem.position == elem.target && elem.velocity == 0) {
         console.log("Returned because stopped");
@@ -64,7 +180,8 @@ function myFunc(e) {
 
     function applyDelta(elem, index) {
 
-    }
+  */
+
   }
 }
 
