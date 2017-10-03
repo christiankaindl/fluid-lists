@@ -5,20 +5,25 @@
     <title>DEMO</title>
     <style media="screen">
       #demo-element {
-        width: 300px;
-        border: 1px solid black;
-
+        width: 400px;
       }
       body {
         overflow:hidden;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
       }
 
       li {
-        width: 300px;
+        background-color: white;
+        border: 1px solid whitesmoke;
         font-size: 2em;
         padding: 30px;
+        box-shadow: 0 5px 20px 0 #EEE;
+        border-radius: 20px;
+        margin: 1em 0;
         list-style-type: none;
-        text-align: center;
+
         /*transition: transform 100ms linear;*/
       }
     </style>
@@ -129,16 +134,31 @@
 
       var box = document.getElementById("demo-element");
       var speed = 0; // in px/millisecond
-      var friction = 0.0075; // in px/millisecond
+      var friction = 0.0050; // in px/millisecond
       var totalDistance = 0;
       var isRunning = false;
 
       var frameTimeDelta = 0;
       var lastFrameTimeStamp = 0;
 
+      var BOUNCE_THRESHOLD = 100;
+      var MAX_SPEED = 5;
+
       function move (e) {
         // flip input (because it's the wrong way around)
-        speed += (e.deltaY * -1)/10;
+        let deltaY = e.deltaY * -1;
+
+        // Minimum speed to ensure snappy movement
+        if (speed < 0.5 && speed > -0.5) {
+          speed += deltaY/4;
+        }
+        else {
+          speed += deltaY/15;
+        }
+        // Maximum speed limit
+        if (speed > MAX_SPEED || speed < -MAX_SPEED) {
+          speed = 5 * Math.sign(speed);
+        }
 
         // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
 
