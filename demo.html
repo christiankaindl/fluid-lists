@@ -12,10 +12,7 @@
       body {
         overflow:hidden;
       }
-      ul {
-        overflow: hidden;
-        height: 100vh;
-      }
+
       li {
         width: 300px;
         font-size: 2em;
@@ -58,80 +55,128 @@
       <li>Item 12</li>
       <li>Item 13</li>
       <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
 
     </ul>
 
     <script src="tweenjs.js"></script>
     <script type="text/javascript">
-      var startY = 0;
+      /** TODO
+      * Implement bounce effects
+      * Implement sluggish-effect on list elements
+      * Add more input types (not only wheel)
+      * Implement scroll bar
+      */
 
       var box = document.getElementById("demo-element");
-      var elements = document.getElementsByClassName("elements");
       var speed = 0; // in px/millisecond
-      var friction = 0.0005; // in px/millisecond^2
+      var friction = 0.0075; // in px/millisecond
+      var totalDistance = 0;
       var isRunning = false;
 
-      //var position = 0;
-      var timeSinceLastFrame = 0;
-      var lastTime = 0;
-      var deltaY = 0;
-
+      var frameTimeDelta = 0;
+      var lastFrameTimeStamp = 0;
 
       function move (e) {
-        deltaY = e.deltaY * -1;
+        // flip input (because it's the wrong way around)
+        speed += (e.deltaY * -1)/10;
 
-        speed += (deltaY/30) + (Math.min(Math.abs(speed)/100), 0) * Math.sign(speed);
-        console.log("SPEED: ", speed);
-
-        sign = getSign();
-
-        function getSign() {
-          // NOTE: Use Math.sign() instead;
-          return deltaY<0 ? sign="-" : sign="+";
-        }
-
-        // AddMovemnt function needed
-
-        //console.log("speed: ", speed);
+        // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
 
         if (isRunning == false) {
-          lastTime = performance.now();
+          lastFrameTimeStamp = performance.now();
           isRunning = true;
           requestAnimationFrame(animate);
         }
       }
 
-      document.addEventListener("wheel", move);
-
-      //uses quadratic out easing
-      function getMeY(timePassed) {
-        //console.log("Ydelta: ", timePassed * (sign=="-" ? -speed : speed));
-        //return timePassed * (sign=="-" ? -speed : speed);
+      function getDelta(timePassed) {
+        // NOTE: This does not take into account all speed steps that may happen
+        // during a long frame, so this is not always accurate
         return timePassed * speed;
-        //return distance * (timeInPercent*(2-timeInPercent));
       }
       function animate() {
-        var now = performance.now();
-        var timeSinceLastFrame = Math.floor(now - lastTime);
+        var currentFrameTimeStamp = performance.now();
+        var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp);
 
-        lastTime = now;
+        lastFrameTimeStamp = currentFrameTimeStamp;
 
         if (speed != 0) {
           requestAnimationFrame(animate);
 
-          box.style.setProperty('transform', `translateY(${startY+=Math.round(getMeY(timeSinceLastFrame))}px)`);
+          box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
 
-          // NOTE: The following could be prettier
-          speed = Math.sign(speed)==-1 ? Math.min(speed + friction * (timeSinceLastFrame*5), 0) : Math.max(speed - friction * (timeSinceLastFrame*5), 0);
+          // NOTE: The following could be prettier (and more performant)
+          // BUG: On Webkit browsers speed is WAY to fast
+          speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
         }
 
         if (speed == 0) {
           isRunning = false;
           return;
         }
-
-
       }
+
+      document.addEventListener("wheel", move);
 
     </script>
   </body>
