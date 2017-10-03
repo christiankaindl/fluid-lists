@@ -157,7 +157,7 @@
         }
         // Maximum speed limit
         if (speed > MAX_SPEED || speed < -MAX_SPEED) {
-          speed = 5 * Math.sign(speed);
+          speed = MAX_SPEED * Math.sign(speed);
         }
 
         // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
