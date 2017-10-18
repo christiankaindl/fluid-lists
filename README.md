@@ -1,9 +1,9 @@
 # physics-lists
 Create lists with physical animation effects.
 
-This is a work in progress. demo.html contains the current working in-progress library. main.js is broken :)
+This is a work in progress. demo.html contains the most up-to-date work-in-progress library. index.html is used for the live demo ((which can be found here)[christiankaindl.github.io/physics-lists]) :)
 
-PS: Only tested in Firefox so far (on Webkit browsers scrolling is way too fast yet)
+PS: Only tested in Firefox so far (on Webkit/Blink browsers scrolling is way too fast yet)
 
 This project was inspired by
 - first and foremost: the scrolling effect of the iOS default Messaging app
