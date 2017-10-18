@@ -120,21 +120,115 @@
       <li>Item 12</li>
       <li>Item 13</li>
       <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+      <li>Item 4</li>
+      <li>Item 5</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
 
     </ul>
 
     <script src="tweenjs.js"></script>
     <script type="text/javascript">
       /** TODO
-      * Implement bounce effects
+      * Implement bounce effect
       * Implement sluggish-effect on list elements
       * Add more input types (not only wheel)
       * Implement scroll bar
+
+      * The core library should be as light as possible
       */
 
+      // IDEA: Add velocity stack that gets dismantled over time. This could make acceleration very smooth (currently it is a bit junky)
       var box = document.getElementById("demo-element");
+      var boxChildren = document.getElementsByTagName("li")
       var speed = 0; // in px/millisecond
-      var friction = 0.0050; // in px/millisecond
+      var friction = 0.0040; // in px/millisecond
       var totalDistance = 0;
       var isRunning = false;
 
@@ -142,7 +236,7 @@
       var lastFrameTimeStamp = 0;
 
       var BOUNCE_THRESHOLD = 100;
-      var MAX_SPEED = 5;
+      var MAX_SPEED = 4;
 
       function move (e) {
         // flip input (because it's the wrong way around)
@@ -183,11 +277,17 @@
         if (speed != 0) {
           requestAnimationFrame(animate);
 
+
           box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
 
-          // NOTE: The following could be prettier (and more performant)
+          // NOTE: The following could be prettier (and more performant?)
+          //       Maybe we could keep a variable that has speed's current sign
           // BUG: On Webkit browsers speed is WAY to fast
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
+
+          for (let i = 0; i < boxChildren.length; i++) {
+            boxChildren[i].style.transform = `translateY(${speed*(-i*15)}px)`;
+          }
         }
 
         if (speed == 0) {
