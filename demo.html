@@ -282,7 +282,7 @@
 
           // NOTE: The following could be prettier (and more performant?)
           //       Maybe we could keep a variable that has speed's current sign
-          // BUG: On Webkit browsers speed is WAY to fast
+          // BUG: On Webkit/Blink browsers speed is WAY to fast
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
 
           for (let i = 0; i < boxChildren.length; i++) {
