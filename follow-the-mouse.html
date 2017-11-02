@@ -20,11 +20,50 @@
     <script>
       var elem = document.getElementById('follower');
 
+      var ANIMATION_DURATION = 1000;
+      var y = 0,
+          lastY = 0,
+          startY = 0,
+          timeStamp = 0,
+          distanceY = 0,
+          progress = 0,
+          relSpeed = 0;
       window.addEventListener("mousemove", update);
-
+      var isRunning = false;
       function update (e) {
-        console.log(e);
-        elem.style.transform = `translateY(${e.clientY}px) translateX(${e.clientX}px)`;
+        timeStamp = performance.now();
+        relSpeed = y - lastY;
+        startY = y;
+        distanceY = e.clientY - startY;
+
+        if (isRunning == false) {
+          console.log("AAAAAAAAAAAHHHHHHH");
+            isRunning = true;
+          requestAnimationFrame(animate);
+        }
+
+        function curve(t) {
+          return t*(2-t);
+        }
+
+        function animate() {
+          lastY = y;
+
+          let timePassed = performance.now()-timeStamp;
+          progress = Math.min(timePassed/ANIMATION_DURATION, 1);
+
+          let b = curve(progress);
+          y = startY + distanceY * b + relSpeed*b;
+
+          if (progress == 1) {
+            lastY = y;
+            isRunning = false;
+            return;
+          }
+          requestAnimationFrame(animate);
+          elem.setAttribute("style", `transform: translateY(${y}px)`)
+          //elem.style.transform = `translateY(${y}px) translateX(${x}px)`;
+        }
       }
     </script>
   </body>

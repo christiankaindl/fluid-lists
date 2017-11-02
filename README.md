@@ -1,7 +1,7 @@
-# physics-lists
+# fluid-lists
 Create lists with physical animation effects.
 
-This is a work in progress. demo.html contains the most up-to-date work-in-progress library. index.html is used for the live demo ([which can be found here](https://christiankaindl.github.io/physics-lists/)) :)
+This is a work in progress. demo.html contains the most up-to-date work-in-progress library. index.html is used for the live demo ([which can be found here](https://christiankaindl.github.io/fluid-lists/)) :)
 
 PS: Only tested in Firefox so far (on Webkit/Blink browsers scrolling is way too fast yet)
 

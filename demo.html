@@ -41,84 +41,55 @@
       <li>Item 8</li>
       <li>Item 9</li>
       <li>Item 10</li>
-      <li>Item 11</li>
-      <li>Item 12</li>
-      <li>Item 13</li>
-      <li>Item 14</li>
-      <li>Item 15</li>
-      <li>Item 16</li>
-      <li>Item 17</li>
-      <li>Item 18</li>
-      <li>Item 19</li>
-      <li>Item 20</li>
-      <li>Item 21</li>
-      <li>Item 22</li>
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      <li>Item 23</li>
-      <li>Item 24</li>
-      <li>Item 25</li>
-      <li>Item 26</li>
-      <li>Item 27</li>
-      <li>Item 28</li>
-      <li>Item 29</li>
-      <li>Item 30</li>
-      <li>Item 31</li>
-      <li>Item 32</li>
-      <li>Item 33</li>
-      <li>Item 34</li>
-      <li>Item 35</li>
-      <li>Item 36</li>
-      <li>Item 37</li>
-      <li>Item 38</li>
-      <li>Item 39</li>
-      <li>Item 40</li>
-      <li>Item 41</li>
-      <li>Item 42</li>
-      <li>Item 43</li>
-      <li>Item 44</li>
-      <li>Item 45</li>
-      <li>Item 46</li>
-      <li>Item 47</li>
-      <li>Item 48</li>
-      <li>Item 49</li>
-      <li>Item 50</li>
     </ul>
 
     <script src="tweenjs.js"></script>
     <script type="text/javascript">
       /** TODO
-      * Implement bounce effect
+      * Implement bounce effect on list end
       * Implement sluggish-effect on list elements
       * Add more input types (not only wheel)
       * Implement scroll bar
 
       * The core library should be as light as possible
+
+      * Also, mid-term it is necessary to make Fluid Lists modular! But first
+      * let's make it work well and clean the code up :)
       */
 
       // IDEA: Add velocity stack that gets dismantled over time. This could make acceleration very smooth (currently it is a bit junky)
       var box = document.getElementById("demo-element");
-      var boxOffsetTop = 0;
       var boxChildren = document.getElementsByTagName("li")
       var data = [];
       var speed = 0; // in px/millisecond
-      var friction = 0.0040; // in px/millisecond
+      var friction = 0.0030; // in px/millisecond
       var totalDistance = 0;
       var isRunning = false;
+      var ANIMATION_DURATION = 50;
 
       var frameTimeDelta = 0;
       var lastFrameTimeStamp = 0;
       var topViewportIndex = 0
+      var timeStamp = 0;
 
+      var TIME = 15;
       var syncPuffer = 0;
 
-      var BOUNCE_THRESHOLD = 100;
+      var BOUNCE_THRESHOLD = 10;
       var MAX_SPEED = 4;
+
+      var relativeOffset = 0;
 
       {
         let length = boxChildren.length;
         for (var i = 0; i < length; i++) {
           data[i] = {
-            offset: 0
+            y: 0,
+            lastY: 0,
+            startY: 0,
+            distanceY: 0,
+            progress: 0,
+            relSpeed: 0
           };
         }
       }
@@ -128,13 +99,15 @@
         for (let i = 0; i < length; i++) {
           if (boxChildren[i].offsetTop > -totalDistance) {
             topViewportIndex = i;
-            syncPuffer = data[i].offset;
+            syncPuffer = data[i].y + syncPuffer;
             break;
           }
         }
       }
-
+var perc = 0;
       function move (e) {
+        // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
+
         // flip input (because it's the wrong way around)
         let deltaY = e.deltaY * -1;
 
@@ -150,8 +123,8 @@
           speed = MAX_SPEED * Math.sign(speed);
         }
 
-        updateTopViewportElem();
-        // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
+        // Get newest reference viewport element
+         updateTopViewportElem();
 
         if (isRunning == false) {
           lastFrameTimeStamp = performance.now();
@@ -160,6 +133,21 @@
         }
       }
 
+      function cycleList(fn) {
+        console.log(topViewportIndex);
+        var beforeLength = topViewportIndex;
+        var afterLength = data.length - topViewportIndex;
+
+        let minLength = Math.min(beforeLength, afterLength);
+
+        for (var i = 0; i < minLength; i++) {
+          fn(topViewportIndex+i);
+          fn(topViewportIndex-i);
+        }
+        for (var i = 0; i < Math.abs(beforeLength - afterLength); i++) {
+          fn(minLength+i);
+        }
+      }
       function getDelta(timePassed) {
         // NOTE: This does not take into account all speed steps that may happen
         // during a long frame, so this is not always accurate
@@ -169,43 +157,59 @@
         var currentFrameTimeStamp = performance.now();
         var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp);
         let length = boxChildren.length;
+        timeStamp = performance.now();
+        let timePassed = performance.now() - timeStamp;
 
         lastFrameTimeStamp = currentFrameTimeStamp;
+        relativeOffset = speed*-20;
+
 
         if (speed != 0) {
-          requestAnimationFrame(animate);
-
-          for (var i = 0; i < length; i++) {
-            boxChildren[i]
-          }
-
-          box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
 
           // NOTE: The following could be prettier (and more performant?)
           //       Maybe we could keep a variable that has speed's current sign
           // BUG: On Webkit/Blink browsers speed is WAY to fast
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
           if (syncPuffer != 0) {
-            syncPuffer = Math.sign(syncPuffer)==-1 ? Math.min(syncPuffer + friction * frameTimeDelta, 0) : Math.max(syncPuffer - friction * frameTimeDelta, 0);
+            // syncBuffer is terribly broken
+            //syncPuffer = Math.sign(syncPuffer)==-1 ? Math.min(friction * frameTimeDelta * 10, 0) : Math.max(friction * frameTimeDelta * 10, 0);
           }
 
-          // Cycle thwough the elements relative to the topViewportIndex
-          // First: all elements that come before topViewportIndex
-          for (var i = topViewportIndex-1; i > 0; i--) {
-            let offset = data[i].offset = speed*(Math.abs(i-topViewportIndex+1)*-7);
-            boxChildren[i].style.transform = `translateY(${offset+syncPuffer}px)`;
-          }
-          // Second: All elements that come after topViewportIndex
-          for (let i = topViewportIndex+1; i < length; i++) {
-            let offset = data[i].offset = speed*((i-topViewportIndex)*-7);
-            boxChildren[i].style.transform = `translateY(${offset+syncPuffer}px)`;
-          }
+         box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
         }
 
-        if (speed == 0) {
+        // Cycle thwough the elements relative to the topViewportIndex
+        // First: all elements that come before topViewportIndex
+        cycleList((i) => {
+          data[i].distanceY = relativeOffset - data[i].startY;
+          data[i].relSpeed = data[i].y - data[i].lastY;
+          data[i].startY = data[i].y;
+
+          data[i].lastY = data[i].y;
+          data[i].progress = Math.min(timePassed/(ANIMATION_DURATION+(i*10)), 1);
+
+          let b = curve(data[i].progress);
+          y = data[i].startY + data[i].distanceY * b - data[i].relSpeed*b;
+
+          boxChildren[i].style.transform = `translateY(${y}px)`;
+        });
+        console.log(data[data.length-1].progress, "progress");
+        if (data[data.length-1].progress == 1) {
+          lastY = y;
           isRunning = false;
           return;
+        }else {
+        requestAnimationFrame(animate);
         }
+      }
+
+      function curve(time) {
+        return time*(2-time);
+      }
+
+      function crazyFunc(time, distance, vel=0) {
+        console.log("time:", time, "distance", distance, "vel", vel);
+        return time*(2-time) * distance + (vel - (vel*(time*(2-time))));
       }
 
       document.addEventListener("wheel", move);
