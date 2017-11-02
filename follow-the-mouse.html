@@ -23,7 +23,7 @@
       var THRESHOLD = 300,
           offset = 0,
           mouseY = 0,
-          MAX_SPEED = 100,
+          MAX_SPEED = 50,
           sign = 1, // 1==positive; -1==negative
           speed = 0,
           y = 0;
@@ -34,7 +34,8 @@
       function curve(offset, i) {
         let progress = Math.min(Math.abs(offset)/THRESHOLD, 1); // Number between 0 and 1
 
-        return Math.min(progress*progress+0.005, 1); // Shoft it a bit so it ends faster (or at all)
+        //return Math.min(progress*progress+0.005, 1); // Shift it a bit so it ends faster (or at all)
+        return Math.min(progress*(2-progress), 1);
       }
 
       function update (e) {
@@ -51,9 +52,9 @@
         function animate() {
           // Probably the easiest way of implementing such animation
           speed = MAX_SPEED*curve(offset);
-          offset -= speed * sign;
+          offset = Math.round(offset - speed * sign);
 
-          if (sign != Math.sign(offset))
+          if (offset==1 || offset==-1 || sign != Math.sign(offset))
             offset = 0;
 
           y = mouseY+offset;
