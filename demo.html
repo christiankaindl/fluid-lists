@@ -57,8 +57,7 @@
     <script src="tweenjs.js"></script>
     <script type="text/javascript">
       /** TODO
-      * Implement bounce effect on list end
-      * Implement sluggish-effect on list elements
+      * Implement bounce effect on parent (overflow-bounce)
       * Add more input types (not only wheel)
       * Implement scroll bar
 
@@ -70,29 +69,19 @@
 
       // IDEA: Add velocity stack that gets dismantled over time. This could make acceleration very smooth (currently it is a bit junky)
       var box = document.getElementById("demo-element");
-      var boxChildren = document.getElementsByTagName("li")
+      var boxChildren = document.getElementsByTagName("li");
+
       var data = [];
       var speed = 0; // in px/millisecond
       var friction = 0.0030; // in px/millisecond
       var totalDistance = 0;
       var isRunning = false;
-      var ANIMATION_DURATION = 50;
 
       var frameTimeDelta = 0;
       var lastFrameTimeStamp = 0;
-      var topViewportIndex = 0
-      var timeStamp = 0;
-      var TIME = 15;
-      var syncPuffer = 0;
+      var topViewportIndex = 0;
 
-      var BOUNCE_THRESHOLD = 10;
-
-
-      var relativeOffset = 0;
-// ----------------------
       var MAX_SPEED = 4,
-          MAX_ACCEL = 100,
-          PIXEL_THRESHOLD = 300,
           MAX_TIME = 100,
           MAX_DIST = 300;
 
@@ -102,8 +91,6 @@
           data[i] = {
             offset: 0,
             lastOffset: 0,
-            speed: 0,
-            sign: 1,
             time: 0
           };
         }
@@ -120,12 +107,11 @@
         for (let i = 0; i < length; i++) {
           if (boxChildren[i].offsetTop > -totalDistance) {
             topViewportIndex = i;
-            syncPuffer = data[i].y + syncPuffer;
             break;
           }
         }
       }
-var perc = 0;
+
       function move (e) {
         // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
 
@@ -190,6 +176,7 @@ var perc = 0;
         }
 
         cycleList((i) => {
+          // TODO: Please, this has to simplified; To much =/-/* going on, hard to follow
           let blub, frameTravel;
 
           if (data[i].time != 0) {
@@ -203,10 +190,12 @@ var perc = 0;
           data[i].offset += frameTravel;
           data[i].lastOffset = Math.round(data[i].offset);
           data[i].time = Math.round(MAX_TIME*curve(data[i].offset))*(1+i);
+        });
 
+        cycleList((i) => {
           boxChildren[i].style.transform = `translateY(${data[i].offset}px)`;
         });
-        //console.log(data[0]);
+
         if (data[data.length-1].lastOffset == 0) {
           isRunning = false;
           return;
