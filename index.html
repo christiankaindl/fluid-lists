@@ -82,59 +82,70 @@
       <li>Item 48</li>
       <li>Item 49</li>
       <li>Item 50</li>
+
     </ul>
 
     <script src="tweenjs.js"></script>
     <script type="text/javascript">
       /** TODO
-      * Implement bounce effect
-      * Implement sluggish-effect on list elements
+      * Implement bounce effect on parent (overflow-bounce)
       * Add more input types (not only wheel)
       * Implement scroll bar
 
       * The core library should be as light as possible
+
+      * Also, mid-term it is necessary to make Fluid Lists modular! But first
+      * let's make it work well and clean the code up :)
       */
 
       // IDEA: Add velocity stack that gets dismantled over time. This could make acceleration very smooth (currently it is a bit junky)
       var box = document.getElementById("demo-element");
-      var boxOffsetTop = 0;
-      var boxChildren = document.getElementsByTagName("li")
+      var boxChildren = document.getElementsByTagName("li");
+
       var data = [];
       var speed = 0; // in px/millisecond
-      var friction = 0.0040; // in px/millisecond
+      var friction = 0.0030; // in px/millisecond
       var totalDistance = 0;
       var isRunning = false;
 
       var frameTimeDelta = 0;
       var lastFrameTimeStamp = 0;
-      var topViewportIndex = 0
+      var topViewportIndex = 0;
 
-      var syncPuffer = 0;
-
-      var BOUNCE_THRESHOLD = 100;
-      var MAX_SPEED = 4;
+      var MAX_SPEED = 4,
+          MAX_TIME = 100,
+          MAX_DIST = 300;
 
       {
         let length = boxChildren.length;
         for (var i = 0; i < length; i++) {
           data[i] = {
-            offset: 0
+            offset: 0,
+            lastOffset: 0,
+            time: 0
           };
         }
       }
-
+      function curve(offset, i) {
+        let progress = Math.min(Math.abs(offset)/MAX_DIST, 1); // Number between 0 and 1
+        //return progress*progress; // Shift it a bit so it ends faster (or at all)
+        return 1-(progress*(2-progress));
+        //return progress;
+        //return 1-(progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress);
+      }
       function updateTopViewportElem () {
         let length = boxChildren.length;
         for (let i = 0; i < length; i++) {
           if (boxChildren[i].offsetTop > -totalDistance) {
             topViewportIndex = i;
-            syncPuffer = data[i].offset;
             break;
           }
         }
       }
 
       function move (e) {
+        // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
+
         // flip input (because it's the wrong way around)
         let deltaY = e.deltaY * -1;
 
@@ -149,9 +160,10 @@
         if (speed > MAX_SPEED || speed < -MAX_SPEED) {
           speed = MAX_SPEED * Math.sign(speed);
         }
+        // Get newest reference viewport element
+         updateTopViewportElem();
 
-        updateTopViewportElem();
-        // IDEA: Maybe there could be a AddMovemnt function (if things get more complex?)
+         cycleList((i) => {data[i].sign = data[i].offset<0?data[i].sign=-1:data[i].sign=1});
 
         if (isRunning == false) {
           lastFrameTimeStamp = performance.now();
@@ -160,51 +172,66 @@
         }
       }
 
+      function cycleList(fn) {
+        var beforeLength = topViewportIndex;
+        var afterLength = data.length - topViewportIndex;
+
+        let minLength = Math.min(beforeLength, afterLength);
+
+        for (var i = 0; i < minLength; i++) {
+          fn(topViewportIndex+i);
+          fn(topViewportIndex-i);
+        }
+        for (var i = 0; i < Math.abs(beforeLength - afterLength); i++) {
+          fn(minLength+i);
+        }
+      }
       function getDelta(timePassed) {
         // NOTE: This does not take into account all speed steps that may happen
-        // during a long frame, so this is not always accurate
+        // during a long frame, so this is an approximation
         return timePassed * speed;
       }
       function animate() {
-        var currentFrameTimeStamp = performance.now();
-        var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp);
-        let length = boxChildren.length;
+        var currentFrameTimeStamp = performance.now(); // Get new timestamp
+        var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp); // Calc time difference between this and the last frame
 
-        lastFrameTimeStamp = currentFrameTimeStamp;
+        lastFrameTimeStamp = currentFrameTimeStamp; // set lastFrameTimeStamp for the next frame to use
 
         if (speed != 0) {
-          requestAnimationFrame(animate);
-
-          for (var i = 0; i < length; i++) {
-            boxChildren[i]
-          }
-
-          box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
-
           // NOTE: The following could be prettier (and more performant?)
           //       Maybe we could keep a variable that has speed's current sign
           // BUG: On Webkit/Blink browsers speed is WAY to fast
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
-          if (syncPuffer != 0) {
-            syncPuffer = Math.sign(syncPuffer)==-1 ? Math.min(syncPuffer + friction * frameTimeDelta, 0) : Math.max(syncPuffer - friction * frameTimeDelta, 0);
-          }
-
-          // Cycle thwough the elements relative to the topViewportIndex
-          // First: all elements that come before topViewportIndex
-          for (var i = topViewportIndex-1; i > 0; i--) {
-            let offset = data[i].offset = speed*(Math.abs(i-topViewportIndex+1)*-7);
-            boxChildren[i].style.transform = `translateY(${offset+syncPuffer}px)`;
-          }
-          // Second: All elements that come after topViewportIndex
-          for (let i = topViewportIndex+1; i < length; i++) {
-            let offset = data[i].offset = speed*((i-topViewportIndex)*-7);
-            boxChildren[i].style.transform = `translateY(${offset+syncPuffer}px)`;
-          }
+          speed.toFixed(8);
+          box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
         }
 
-        if (speed == 0) {
+        cycleList((i) => {
+          // TODO: Please, this has to simplified; To much =/-/* going on, hard to follow
+          let blub, frameTravel;
+
+          if (data[i].time != 0) {
+            blub = (data[i].lastOffset*-1)/data[i].time * frameTimeDelta;
+          } else {
+            blub = 0;
+          }
+
+          frameTravel = -speed + blub;
+
+          data[i].offset += frameTravel;
+          data[i].lastOffset = Math.round(data[i].offset);
+          data[i].time = Math.round(MAX_TIME*curve(data[i].offset))*(1+i);
+        });
+
+        cycleList((i) => {
+          boxChildren[i].style.transform = `translateY(${data[i].offset}px)`;
+        });
+
+        if (data[data.length-1].lastOffset == 0) {
           isRunning = false;
           return;
+        }else {
+          requestAnimationFrame(animate);
         }
       }
 
