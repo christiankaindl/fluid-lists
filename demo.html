@@ -170,9 +170,6 @@ var perc = 0;
           //       Maybe we could keep a variable that has speed's current sign
           // BUG: On Webkit/Blink browsers speed is WAY to fast
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
-          if (syncPuffer != 0) {
-            // syncBuffer is terribly broken
-            //syncPuffer = Math.sign(syncPuffer)==-1 ? Math.min(friction * frameTimeDelta * 10, 0) : Math.max(friction * frameTimeDelta * 10, 0);
           }
 
          box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
