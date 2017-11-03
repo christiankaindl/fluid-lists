@@ -41,6 +41,17 @@
       <li>Item 8</li>
       <li>Item 9</li>
       <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 15</li>
+      <li>Item 16</li>
+      <li>Item 17</li>
+      <li>Item 18</li>
+      <li>Item 19</li>
+      <li>Item 20</li>
+
     </ul>
 
     <script src="tweenjs.js"></script>
@@ -71,29 +82,39 @@
       var lastFrameTimeStamp = 0;
       var topViewportIndex = 0
       var timeStamp = 0;
-
       var TIME = 15;
       var syncPuffer = 0;
 
       var BOUNCE_THRESHOLD = 10;
-      var MAX_SPEED = 4;
+
 
       var relativeOffset = 0;
+// ----------------------
+      var MAX_SPEED = 4,
+          MAX_ACCEL = 100,
+          PIXEL_THRESHOLD = 300,
+          MAX_TIME = 100,
+          MAX_DIST = 300;
 
       {
         let length = boxChildren.length;
         for (var i = 0; i < length; i++) {
           data[i] = {
-            y: 0,
-            lastY: 0,
-            startY: 0,
-            distanceY: 0,
-            progress: 0,
-            relSpeed: 0
+            offset: 0,
+            lastOffset: 0,
+            speed: 0,
+            sign: 1,
+            time: 0
           };
         }
       }
-
+      function curve(offset, i) {
+        let progress = Math.min(Math.abs(offset)/MAX_DIST, 1); // Number between 0 and 1
+        //return progress*progress; // Shift it a bit so it ends faster (or at all)
+        return 1-(progress*(2-progress));
+        //return progress;
+        //return 1-(progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress);
+      }
       function updateTopViewportElem () {
         let length = boxChildren.length;
         for (let i = 0; i < length; i++) {
@@ -122,9 +143,10 @@ var perc = 0;
         if (speed > MAX_SPEED || speed < -MAX_SPEED) {
           speed = MAX_SPEED * Math.sign(speed);
         }
-
         // Get newest reference viewport element
          updateTopViewportElem();
+
+         cycleList((i) => {data[i].sign = data[i].offset<0?data[i].sign=-1:data[i].sign=1});
 
         if (isRunning == false) {
           lastFrameTimeStamp = performance.now();
@@ -134,7 +156,6 @@ var perc = 0;
       }
 
       function cycleList(fn) {
-        console.log(topViewportIndex);
         var beforeLength = topViewportIndex;
         var afterLength = data.length - topViewportIndex;
 
@@ -150,63 +171,48 @@ var perc = 0;
       }
       function getDelta(timePassed) {
         // NOTE: This does not take into account all speed steps that may happen
-        // during a long frame, so this is not always accurate
+        // during a long frame, so this is an approximation
         return timePassed * speed;
       }
       function animate() {
-        var currentFrameTimeStamp = performance.now();
-        var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp);
-        let length = boxChildren.length;
-        timeStamp = performance.now();
-        let timePassed = performance.now() - timeStamp;
+        var currentFrameTimeStamp = performance.now(); // Get new timestamp
+        var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp); // Calc time difference between this and the last frame
 
-        lastFrameTimeStamp = currentFrameTimeStamp;
-        relativeOffset = speed*-20;
-
+        lastFrameTimeStamp = currentFrameTimeStamp; // set lastFrameTimeStamp for the next frame to use
 
         if (speed != 0) {
-
           // NOTE: The following could be prettier (and more performant?)
           //       Maybe we could keep a variable that has speed's current sign
           // BUG: On Webkit/Blink browsers speed is WAY to fast
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
-          }
-
-         box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
+          speed.toFixed(8);
+          box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
         }
 
-        // Cycle thwough the elements relative to the topViewportIndex
-        // First: all elements that come before topViewportIndex
         cycleList((i) => {
-          data[i].distanceY = relativeOffset - data[i].startY;
-          data[i].relSpeed = data[i].y - data[i].lastY;
-          data[i].startY = data[i].y;
+          let blub, frameTravel;
 
-          data[i].lastY = data[i].y;
-          data[i].progress = Math.min(timePassed/(ANIMATION_DURATION+(i*10)), 1);
+          if (data[i].time != 0) {
+            blub = (data[i].lastOffset*-1)/data[i].time * frameTimeDelta;
+          } else {
+            blub = 0;
+          }
 
-          let b = curve(data[i].progress);
-          y = data[i].startY + data[i].distanceY * b - data[i].relSpeed*b;
+          frameTravel = -speed + blub;
 
-          boxChildren[i].style.transform = `translateY(${y}px)`;
+          data[i].offset += frameTravel;
+          data[i].lastOffset = Math.round(data[i].offset);
+          data[i].time = Math.round(MAX_TIME*curve(data[i].offset))*(1+i);
+
+          boxChildren[i].style.transform = `translateY(${data[i].offset}px)`;
         });
-        console.log(data[data.length-1].progress, "progress");
-        if (data[data.length-1].progress == 1) {
-          lastY = y;
+        //console.log(data[0]);
+        if (data[data.length-1].lastOffset == 0) {
           isRunning = false;
           return;
         }else {
-        requestAnimationFrame(animate);
+          requestAnimationFrame(animate);
         }
-      }
-
-      function curve(time) {
-        return time*(2-time);
-      }
-
-      function crazyFunc(time, distance, vel=0) {
-        console.log("time:", time, "distance", distance, "vel", vel);
-        return time*(2-time) * distance + (vel - (vel*(time*(2-time))));
       }
 
       document.addEventListener("wheel", move);
