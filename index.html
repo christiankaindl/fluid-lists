@@ -6,6 +6,8 @@
     <style media="screen">
       #demo-element {
         width: 400px;
+        outline: 1px solid black;
+        padding-right: 40px;
       }
       body {
         overflow:hidden;
@@ -35,53 +37,6 @@
       <li>Item 3</li>
       <li>Item 4</li>
       <li>Item 5</li>
-      Some reference text.
-      <li>Item 6</li>
-      <li>Item 7</li>
-      <li>Item 8</li>
-      <li>Item 9</li>
-      <li>Item 10</li>
-      <li>Item 11</li>
-      <li>Item 12</li>
-      <li>Item 13</li>
-      <li>Item 14</li>
-      <li>Item 15</li>
-      <li>Item 16</li>
-      <li>Item 17</li>
-      <li>Item 18</li>
-      <li>Item 19</li>
-      <li>Item 20</li>
-      <li>Item 21</li>
-      <li>Item 22</li>
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      <li>Item 23</li>
-      <li>Item 24</li>
-      <li>Item 25</li>
-      <li>Item 26</li>
-      <li>Item 27</li>
-      <li>Item 28</li>
-      <li>Item 29</li>
-      <li>Item 30</li>
-      <li>Item 31</li>
-      <li>Item 32</li>
-      <li>Item 33</li>
-      <li>Item 34</li>
-      <li>Item 35</li>
-      <li>Item 36</li>
-      <li>Item 37</li>
-      <li>Item 38</li>
-      <li>Item 39</li>
-      <li>Item 40</li>
-      <li>Item 41</li>
-      <li>Item 42</li>
-      <li>Item 43</li>
-      <li>Item 44</li>
-      <li>Item 45</li>
-      <li>Item 46</li>
-      <li>Item 47</li>
-      <li>Item 48</li>
-      <li>Item 49</li>
-      <li>Item 50</li>
 
     </ul>
 
@@ -113,8 +68,8 @@
       var topViewportIndex = 0;
 
       var MAX_SPEED = 4,
-          MAX_TIME = 100,
-          MAX_DIST = 300;
+          MAX_TIME = 200,
+          MAX_DIST = 30;
 
       {
         let length = boxChildren.length;
@@ -128,10 +83,10 @@
       }
       function curve(offset, i) {
         let progress = Math.min(Math.abs(offset)/MAX_DIST, 1); // Number between 0 and 1
-        //return progress*progress; // Shift it a bit so it ends faster (or at all)
-        return 1-(progress*(2-progress));
+        // return progress*progress; // Shift it a bit so it ends faster (or at all)
+        //return (progress*(2-progress));
         //return progress;
-        //return 1-(progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress);
+        return 1-(progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress);
       }
       function updateTopViewportElem () {
         let length = boxChildren.length;
@@ -191,9 +146,11 @@
         // during a long frame, so this is an approximation
         return timePassed * speed;
       }
+      var totalSpeedSpent = 0;
       function animate() {
         var currentFrameTimeStamp = performance.now(); // Get new timestamp
         var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp); // Calc time difference between this and the last frame
+        let frameDeltaDistance = 0;
 
         lastFrameTimeStamp = currentFrameTimeStamp; // set lastFrameTimeStamp for the next frame to use
 
@@ -203,7 +160,8 @@
           // BUG: On Webkit/Blink browsers speed is WAY to fast
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
           speed.toFixed(8);
-          box.style.transform = `translateY(${totalDistance += getDelta(frameTimeDelta)}px)`;
+          frameDeltaDistance = getDelta(frameTimeDelta);
+          // box.style.transform = `translateY(${totalDistance += frameDeltaDistance}px)`;
         }
 
         cycleList((i) => {
@@ -211,16 +169,22 @@
           let blub, frameTravel;
 
           if (data[i].time != 0) {
-            blub = (data[i].lastOffset*-1)/data[i].time * frameTimeDelta;
+            i==0?console.log((data[i].lastOffset)/data[i].time):"";
+            // lastOffset should not be able to get bigger than MAX_DIST
+            blub = (data[i].lastOffset)/data[i].time * frameTimeDelta;
           } else {
             blub = 0;
           }
 
-          frameTravel = -speed + blub;
+          frameTravel = frameDeltaDistance + blub;
 
-          data[i].offset += frameTravel;
-          data[i].lastOffset = Math.round(data[i].offset);
-          data[i].time = Math.round(MAX_TIME*curve(data[i].offset))*(1+i);
+          data[i].offset -= frameTravel;
+          // i==0?console.log(data[i].offset, "OFFSET"):"";
+          // i==0?console.log(totalSpeedSpent, "TOTAL"):"";
+
+
+          data[i].lastOffset = data[i].offset;
+          data[i].time = MAX_TIME*(curve(data[i].offset)).toFixed(2)*(1+i);
         });
 
         cycleList((i) => {
