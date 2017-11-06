@@ -5,7 +5,7 @@
     <title>DEMO</title>
     <style media="screen">
       #demo-element {
-        width: 400px;
+        width: 360px;
         outline: 1px solid black;
         padding-right: 40px;
       }
@@ -37,6 +37,22 @@
       <li>Item 3</li>
       <li>Item 4</li>
       <li>Item 5</li>
+      Some reference text.
+      <li>Item 6</li>
+      <li>Item 7</li>
+      <li>Item 8</li>
+      <li>Item 9</li>
+      <li>Item 10</li>
+      <li>Item 11</li>
+      <li>Item 12</li>
+      <li>Item 13</li>
+      <li>Item 14</li>
+      <li>Item 15</li>
+      <li>Item 16</li>
+      <li>Item 17</li>
+      <li>Item 18</li>
+      <li>Item 19</li>
+      <li>Item 20</li>
 
     </ul>
 
@@ -68,8 +84,8 @@
       var topViewportIndex = 0;
 
       var MAX_SPEED = 4,
-          MAX_TIME = 200,
-          MAX_DIST = 30;
+          MAX_TIME = 100,
+          MAX_DIST = 100;
 
       {
         let length = boxChildren.length;
@@ -85,8 +101,8 @@
         let progress = Math.min(Math.abs(offset)/MAX_DIST, 1); // Number between 0 and 1
         // return progress*progress; // Shift it a bit so it ends faster (or at all)
         //return (progress*(2-progress));
-        //return progress;
-        return 1-(progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress);
+        return progress;
+        //return (progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress);
       }
       function updateTopViewportElem () {
         let length = boxChildren.length;
@@ -116,7 +132,7 @@
           speed = MAX_SPEED * Math.sign(speed);
         }
         // Get newest reference viewport element
-         updateTopViewportElem();
+        //  updateTopViewportElem();
 
          cycleList((i) => {data[i].sign = data[i].offset<0?data[i].sign=-1:data[i].sign=1});
 
@@ -161,30 +177,46 @@
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
           speed.toFixed(8);
           frameDeltaDistance = getDelta(frameTimeDelta);
-          // box.style.transform = `translateY(${totalDistance += frameDeltaDistance}px)`;
+          box.style.transform = `translateY(${totalDistance += frameDeltaDistance}px)`;
         }
 
         cycleList((i) => {
           // TODO: Please, this has to simplified; To much =/-/* going on, hard to follow
-          let blub, frameTravel;
+          let blub, frameTravel, time;
 
-          if (data[i].time != 0) {
-            i==0?console.log((data[i].lastOffset)/data[i].time):"";
+          blub = curve(-data[i].lastOffset - frameDeltaDistance);
+          // i==0?console.log(data[i].lastOffset, "OFFSET"):"";
+          // i==0?console.log(frameDeltaDistance, "frameDeltaDistance"):"";
+          // i==0?console.log(blub, "blub"):"";
+          // time = MAX_TIME*blub; // So we have an approximation. Otherwise if the animation would run (noticably) slower the lower the framerate
+          // time = MAX_TIME * (1-blub) * (i+1);
+          time = MAX_TIME * (i+1);
+          // console.log(time);
+          // if (data[i].time != 0) {
+            // i==0?console.log(time, "TIME"):"";
             // lastOffset should not be able to get bigger than MAX_DIST
-            blub = (data[i].lastOffset)/data[i].time * frameTimeDelta;
-          } else {
-            blub = 0;
-          }
+            if (time <= MAX_TIME* (i+1)) {
+              data[i].offset = data[i].lastOffset + (-data[i].lastOffset - frameDeltaDistance)/time * frameTimeDelta;
+            }
+            else {
+              data[i].offset = 0;
+              console.log("SHOUT");
+            }
+            if (data[i].offset == 0) {
+              console.log("WOOOOOOOOO");
+            }
+          // } else {
+          //   blub = 0;
+          // }
 
-          frameTravel = frameDeltaDistance + blub;
+          // frameTravel = frameDeltaDistance + blub;
 
-          data[i].offset -= frameTravel;
+          // data[i].offset -= frameTravel;
           // i==0?console.log(data[i].offset, "OFFSET"):"";
-          // i==0?console.log(totalSpeedSpent, "TOTAL"):"";
-
+          // i==0?console.log(data[i].offset, "TOTAL"):"";
 
           data[i].lastOffset = data[i].offset;
-          data[i].time = MAX_TIME*(curve(data[i].offset)).toFixed(2)*(1+i);
+          //data[i].time = MAX_TIME*(curve(data[i].offset)).toFixed(2)*(1+i);
         });
 
         cycleList((i) => {
