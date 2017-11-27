@@ -7,6 +7,9 @@
       #follower {
         height: 40px;
         width: 40px;
+        position: relative;
+        left: -30px;
+        top: -30px;
         border: 2px solid lightgrey;
         background-color: lime;
       }
@@ -20,27 +23,17 @@
     <script>
       var elem = document.getElementById('follower');
 
-      var TIME = 500;
-      var THRESHOLD = 300,
-          offset = 0,
-          mouseY = 0,
-          MAX_SPEED = 50,
-          sign = 1, // 1==positive; -1==negative
-          speed = 0,
-          y = 0;
+      var TIME = 200;
 
-      var startPosX = 0;
-      var startPosY = 0;
-      var currentPosX = 0;
-      var currentPosY = 0;
+      var startPosition = [0, 0], // [0]: x-coordinate; [1]: y-coordinate
+          currentPosition = [0, 0],
+          targetPosition = [0 , 0],
+          startTime = 0,
+          currentTime = 0;
 
-      var startTime = 0;
-      var currentTime = 0;
-      var targetX = 0;
-      var targetY = 0;
+      var isRunning = false;
 
       window.addEventListener("mousemove", update);
-      var isRunning = false;
 
       function curve() {
         let progress = Math.min((currentTime-startTime)/TIME, 1); // Number between 0 and 1
@@ -51,11 +44,11 @@
       }
 
       function update (e) {
-        targetX = e.pageX;
-        targetY = e.pageY;
+        targetPosition[0] = e.pageX;
+        targetPosition[1] = e.pageY;
 
-        startPosX = currentPosX;
-        startPosY = currentPosY;
+        startPosition[0] = currentPosition[0];
+        startPosition[1] = currentPosition[1];
 
         startTime = performance.now();
 
@@ -67,20 +60,22 @@
         function animate() {
           currentTime = performance.now();
 
-          let prog = curve();
-          let distanceX = targetX-startPosX;
-          let distanceY = targetY-startPosY;
+          let progress = curve();
+          let distance = [];
 
-          currentPosX = startPosX + (distanceX * prog);
-          currentPosY = startPosY + (distanceY * prog);
+          distance[0] = targetPosition[0] - startPosition[0];
+          distance[1] = targetPosition[1] - startPosition[1];
 
-          if (prog == 1) {
+          currentPosition[0] = startPosition[0] + (distance[0] * progress);
+          currentPosition[1] = startPosition[1] + (distance[1] * progress);
+
+          if (progress == 1) {
             isRunning = false;
             return;
           }
           requestAnimationFrame(animate);
 
-          elem.setAttribute("style", `transform: translateY(${currentPosY}px) translateX(${currentPosX}px)`)
+          elem.setAttribute("style", `transform: translateY(${currentPosition[1]}px) translateX(${currentPosition[0]}px)`)
         }
       }
     </script>
