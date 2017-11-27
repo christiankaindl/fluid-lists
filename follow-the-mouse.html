@@ -5,8 +5,8 @@
     <title>"Follow the mouse" animation experiment</title>
     <style media="screen">
       #follower {
-        height: 64px;
-        width: 300px;
+        height: 40px;
+        width: 40px;
         border: 2px solid lightgrey;
         background-color: lime;
       }
@@ -20,6 +20,7 @@
     <script>
       var elem = document.getElementById('follower');
 
+      var TIME = 500;
       var THRESHOLD = 300,
           offset = 0,
           mouseY = 0,
@@ -28,21 +29,35 @@
           speed = 0,
           y = 0;
 
+      var startPosX = 0;
+      var startPosY = 0;
+      var currentPosX = 0;
+      var currentPosY = 0;
+
+      var startTime = 0;
+      var currentTime = 0;
+      var targetX = 0;
+      var targetY = 0;
+
       window.addEventListener("mousemove", update);
       var isRunning = false;
 
-      function curve(offset, i) {
-        let progress = Math.min(Math.abs(offset)/THRESHOLD, 1); // Number between 0 and 1
+      function curve() {
+        let progress = Math.min((currentTime-startTime)/TIME, 1); // Number between 0 and 1
 
         //return Math.min(progress*progress+0.005, 1); // Shift it a bit so it ends faster (or at all)
+        //return progress;
         return Math.min(progress*(2-progress), 1);
       }
 
       function update (e) {
-        mouseY = e.clientY;
-        offset = y-mouseY;
+        targetX = e.pageX;
+        targetY = e.pageY;
 
-        offset<0?sign=-1:sign=1;
+        startPosX = currentPosX;
+        startPosY = currentPosY;
+
+        startTime = performance.now();
 
         if (isRunning == false) {
             isRunning = true;
@@ -50,22 +65,22 @@
         }
 
         function animate() {
-          // Probably the easiest way of implementing such animation
-          speed = MAX_SPEED*curve(offset);
-          offset = Math.round(offset - speed * sign);
+          currentTime = performance.now();
 
-          if (offset==1 || offset==-1 || sign != Math.sign(offset))
-            offset = 0;
+          let prog = curve();
+          let distanceX = targetX-startPosX;
+          let distanceY = targetY-startPosY;
 
-          y = mouseY+offset;
+          currentPosX = startPosX + (distanceX * prog);
+          currentPosY = startPosY + (distanceY * prog);
 
-          if (offset == 0) {
+          if (prog == 1) {
             isRunning = false;
             return;
           }
           requestAnimationFrame(animate);
 
-          elem.setAttribute("style", `transform: translateY(${y}px)`)
+          elem.setAttribute("style", `transform: translateY(${currentPosY}px) translateX(${currentPosX}px)`)
         }
       }
     </script>
