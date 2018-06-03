@@ -36,23 +36,6 @@
       <li>Item 2</li>
       <li>Item 3</li>
       <li>Item 4</li>
-      <li>Item 5</li>
-      Some reference text.
-      <li>Item 6</li>
-      <li>Item 7</li>
-      <li>Item 8</li>
-      <li>Item 9</li>
-      <li>Item 10</li>
-      <li>Item 11</li>
-      <li>Item 12</li>
-      <li>Item 13</li>
-      <li>Item 14</li>
-      <li>Item 15</li>
-      <li>Item 16</li>
-      <li>Item 17</li>
-      <li>Item 18</li>
-      <li>Item 19</li>
-      <li>Item 20</li>
 
     </ul>
 
@@ -84,13 +67,21 @@
       var topViewportIndex = 0;
 
       var MAX_SPEED = 4,
-          MAX_TIME = 100,
+          MAX_TIME = 1000,
           MAX_DIST = 100;
+
+      var PX_MS = MAX_DIST/MAX_TIME; // Should use getters/setters so it gets updated automatically
+      var lastCurve = 0;
+
+
 
       {
         let length = boxChildren.length;
         for (var i = 0; i < length; i++) {
           data[i] = {
+            startPosition:,
+            currentPosition,
+            
             offset: 0,
             lastOffset: 0,
             time: 0
@@ -168,6 +159,7 @@
         var frameTimeDelta = Math.floor(currentFrameTimeStamp - lastFrameTimeStamp); // Calc time difference between this and the last frame
         let frameDeltaDistance = 0;
 
+
         lastFrameTimeStamp = currentFrameTimeStamp; // set lastFrameTimeStamp for the next frame to use
 
         if (speed != 0) {
@@ -177,34 +169,43 @@
           speed = Math.sign(speed)==-1 ? Math.min(speed + friction * frameTimeDelta, 0) : Math.max(speed - friction * frameTimeDelta, 0);
           speed.toFixed(8);
           frameDeltaDistance = getDelta(frameTimeDelta);
-          box.style.transform = `translateY(${totalDistance += frameDeltaDistance}px)`;
+          //box.style.transform = `translateY(${totalDistance += frameDeltaDistance}px)`;
         }
 
         cycleList((i) => {
           // TODO: Please, this has to simplified; To much =/-/* going on, hard to follow
           let blub, frameTravel, time;
 
-          blub = curve(-data[i].lastOffset - frameDeltaDistance);
+          frameTravel = (frameDeltaDistance + PX_MS*frameTimeDelta)*(1-lastCurve);
+
+          i==0?console.log(frameTravel, "TIME"):"";
+          // blub = curve(data[i].offset + (frameDeltaDistance - PX_MS*frameTimeDelta));
+
+          // lastCurve = curve;
           // i==0?console.log(data[i].lastOffset, "OFFSET"):"";
           // i==0?console.log(frameDeltaDistance, "frameDeltaDistance"):"";
+          // i==0?console.log(PX_MS*frameTimeDelta, "lel"):"";
           // i==0?console.log(blub, "blub"):"";
           // time = MAX_TIME*blub; // So we have an approximation. Otherwise if the animation would run (noticably) slower the lower the framerate
           // time = MAX_TIME * (1-blub) * (i+1);
-          time = MAX_TIME * (i+1);
+          // time = MAX_TIME * (i+1);
           // console.log(time);
           // if (data[i].time != 0) {
             // i==0?console.log(time, "TIME"):"";
             // lastOffset should not be able to get bigger than MAX_DIST
-            if (time <= MAX_TIME* (i+1)) {
-              data[i].offset = data[i].lastOffset + (-data[i].lastOffset - frameDeltaDistance)/time * frameTimeDelta;
-            }
-            else {
-              data[i].offset = 0;
-              console.log("SHOUT");
-            }
-            if (data[i].offset == 0) {
-              console.log("WOOOOOOOOO");
-            }
+
+            data[i].offset -= frameTravel;
+            lastCurve = curve(data[i].offset);
+            // if (time <= MAX_TIME* (i+1)) {
+            //   data[i].offset = data[i].lastOffset + (-data[i].lastOffset - frameDeltaDistance)/time * frameTimeDelta;
+            // }
+            // else {
+            //   data[i].offset = 0;
+            //   // console.log("SHOUT");
+            // }
+            // if (data[i].offset == 0) {
+            //   // console.log("WOOOOOOOOO");
+            // }
           // } else {
           //   blub = 0;
           // }
@@ -215,7 +216,7 @@
           // i==0?console.log(data[i].offset, "OFFSET"):"";
           // i==0?console.log(data[i].offset, "TOTAL"):"";
 
-          data[i].lastOffset = data[i].offset;
+          // data[i].lastOffset = data[i].offset;
           //data[i].time = MAX_TIME*(curve(data[i].offset)).toFixed(2)*(1+i);
         });
 
@@ -223,7 +224,7 @@
           boxChildren[i].style.transform = `translateY(${data[i].offset}px)`;
         });
 
-        if (data[data.length-1].lastOffset == 0) {
+        if (data[data.length-1].offset == 0) {
           isRunning = false;
           return;
         }else {

@@ -23,7 +23,7 @@
     <script>
       var elem = document.getElementById('follower');
 
-      var TIME = 200;
+      var TIME = 1000;
 
       var startPosition = [0, 0], // [0]: x-coordinate; [1]: y-coordinate
           currentPosition = [0, 0],
@@ -39,7 +39,8 @@
         let progress = Math.min((currentTime-startTime)/TIME, 1); // Number between 0 and 1
 
         //return Math.min(progress*progress+0.005, 1); // Shift it a bit so it ends faster (or at all)
-        //return progress;
+        // return progress;
+        // return (progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress);
         return Math.min(progress*(2-progress), 1);
       }
 
